@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Karakter Sistemi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+        .button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .status {
+            margin: 20px 0;
+        }
+        .character-info, .ranking-info {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="auth">
+        <h1>Giriş / Kayıt</h1>
+        <button class="button" onclick="showRegister()">Kayıt Ol</button>
+        <button class="button" onclick="showLogin()">Giriş Yap</button>
+    </div>
+
+    <div id="register" class="hidden">
+        <h2>Kayıt Ol</h2>
+        <input type="text" id="register-username" placeholder="Kullanıcı Adı" />
+        <input type="password" id="register-password" placeholder="Şifre" />
+        <button class="button" onclick="register()">Kayıt Ol</button>
+        <button class="button" onclick="showAuth()">Geri</button>
+    </div>
+
+    <div id="login" class="hidden">
+        <h2>Giriş Yap</h2>
+        <input type="text" id="login-username" placeholder="Kullanıcı Adı" />
+        <input type="password" id="login-password" placeholder="Şifre" />
+        <button class="button" onclick="login()">Giriş Yap</button>
+        <button class="button" onclick="showAuth()">Geri</button>
+    </div>
+
+    <div id="main" class="hidden">
+        <h1>Ana Menü</h1>
+        <button class="button" onclick="showCharacter()">Karakterler</button>
+        <button class="button" onclick="playGame()">Oyna</button>
+        <button class="button" onclick="openBox()">Kutu Aç</button>
+        <button class="button" onclick="showRanking()">Sıralama</button>
+
+        <div id="character-info" class="hidden">
+            <h2>Karakter Bilgisi</h2>
+            <div class="status">
+                <p id="selected-character">Seçilen Karakter: </p>
+                <p id="character-rank">Karakterin Rütbesi: </p>
+                <p id="character-cup">Karakterin Kupası: </p>
+                <p id="character-icon">Karakter Simgesi: </p>
+                <p id="total-cups">Toplam Kupa: </p>
+            </div>
+        </div>
+
+        <div id="ranking-info" class="hidden">
+            <h2>Sıralama</h2>
+            <div id="ranking-list"></div>
+            <button class="button" onclick="showMain()">Geri</button>
+        </div>
+    </div>
+
+    <script>
+        function saveUsers(users) {
+            localStorage.setItem('users', JSON.stringify(users));
+        }
+
+        function loadUsers() {
+            const users = localStorage.getItem('users');
+            return users ? JSON.parse(users) : {};
+        }
+
+        function saveCurrentUser(username) {
+            localStorage.setItem('currentUser', username);
+        }
+
+        function loadCurrentUser() {
+            return localStorage.getItem('currentUser');
+        }
+
+        let users = loadUsers();
+        let currentUser = loadCurrentUser();
+
+        function showAuth() {
+            document.getElementById('auth').classList.remove('hidden');
+            document.getElementById('register').classList.add('hidden');
+            document.getElementById('login').classList.add('hidden');
+            document.getElementById('main').classList.add('hidden');
+            document.getElementById('character-info').classList.add('hidden');
+            document.getElementById('ranking-info').classList.add('hidden');
+        }
+
+        function showRegister() {
+            document.getElementById('auth').classList.add('hidden');
+            document.getElementById('register').classList.remove('hidden');
+            document.getElementById('login').classList.add('hidden');
+        }
+
+        function showLogin() {
+            document.getElementById('auth').classList.add('hidden');
+            document.getElementById('register').classList.add('hidden');
+            document.getElementById('login').classList.remove('hidden');
+        }
+
+        function showMain() {
+            document.getElementById('auth').classList.add('hidden');
+            document.getElementById('register').classList.add('hidden');
+            document.getElementById('login').classList.add('hidden');
+            document.getElementById('main').classList.remove('hidden');
+            document.getElementById('character-info').classList.add('hidden');
+            document.getElementById('ranking-info').classList.add('hidden');
+        }
+
+        function register() {
+            const username = document.getElementById('register-username').value.trim();
+            const password = document.getElementById('register-password').value.trim();
+            if (username && password) {
+                if (users[username]) {
+                    alert('Bu kullanıcı adı zaten mevcut!');
+                } else {
+                    users[username] = { password: password, cups: 0, rank: 0 };
+                    saveUsers(users);
+                    alert('Kayıt başarılı!');
+                    showLogin();
+                }
+            } else {
+                alert('Kullanıcı adı ve şifre giriniz!');
+            }
+        }
+
+        function login() {
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            if (users[username] && users[username].password === password) {
+                currentUser = username;
+                saveCurrentUser(username);
+                showMain();
+                showCharacter(); // Giriş yapıldığında karakter bilgilerini güncelle
+            } else {
+                alert('Kullanıcı adı veya şifre yanlış!');
+            }
+        }
+
+        function showCharacter() {
+            if (currentUser) {
+                const user = users[currentUser];
+                const cups = user.cups;
+                const rank = Math.floor(cups / 100);
+                let icon = '';
+
+                if (cups >= 1250) {
+                    icon = 'Kapalı Mavi Daire';
+                } else if (cups >= 1000) {
+                    icon = 'Kırmızı Daire';
+                } else if (cups >= 750) {
+                    icon = 'Yeşil Daire';
+                } else if (cups >= 500) {
+                    icon = 'Mor Daire';
+                } else {
+                    icon = 'Boş';
+                }
+
+                document.getElementById('character-info').classList.remove('hidden');
+                document.getElementById('selected-character').innerText = `Seçilen Karakter: Bombo`;
+                document.getElementById('character-rank').innerText = `Karakterin Rütbesi: ${rank}`;
+                document.getElementById('character-cup').innerText = `Karakterin Kupası: ${cups}`;
+                document.getElementById('character-icon').innerText = `Karakter Simgesi: ${icon}`;
+                document.getElementById('total-cups').innerText = `Toplam Kupa: ${cups}`;
+            }
+        }
+
+        function playGame() {
+            if (currentUser) {
+                const num1 = Math.floor(Math.random() * 10) + 1;
+                const num2 = Math.floor(Math.random() * 10) + 1;
+                const answer = prompt(`Ne kadar eder: ${num1} + ${num2}?`);
+                if (parseInt(answer) === (num1 + num2)) {
+                    users[currentUser].cups += 8;
+                    alert('Doğru cevap! 8 kupa kazandınız.');
+                } else {
+                    users[currentUser].cups -= 4;
+                    alert('Yanlış cevap! 4 kupa kaybettiniz.');
+                }
+                users[currentUser].rank = Math.floor(users[currentUser].cups / 100);
+                saveUsers(users);
+                showCharacter();
+            }
+        }
+
+        function openBox() {
+            if (currentUser) {
+                const outcome = Math.random() > 0.5;
+                if (outcome) {
+                    alert('Kutu açıldı! Karakter çıktı.');
+                } else {
+                    alert('Kutu açıldı, ama karakter çıkmadı.');
+                }
+            }
+        }
+
+        function showRanking() {
+            if (currentUser) {
+                const ranking = Object.entries(users).sort((a, b) => b[1].cups - a[1].cups);
+                alert('Sıralama:\n' + ranking.map(([username, { cups }]) => `${username}: ${cups} kupa`).join('\n'));
+            }
+        }
+    </script>
+</body>
+</html>
